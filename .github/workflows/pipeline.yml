@@ -11,15 +11,29 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+
       - name: install dependencies
         run: npm install
+
       - name: Check style
         run: npm run eslint -- --fix
+
       - name: test
         run: npm run test
+
+      - name: run playwright tests
+        uses: ./.github/workflows/playwright.yml
+        with:
+          node-version: "20"
+
       - name: build
         if: success()
         run: npm run build
+
+      - name: trigger deployment
+        if: success()
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
