@@ -11,29 +11,27 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: install dependencies
-        run: npm install
+      - name: Install dependencies
+        run: npm ci
 
       - name: Check style
         run: npm run eslint -- --fix
 
-      - name: test
+      - name: Unit tests
         run: npm run test
 
-      - name: run playwright tests
-        uses: ./.github/workflows/playwright.yml
-        with:
-          node-version: "20"
+  playwright_tests:
+    needs: simple_deployment_pipeline
+    uses: ./.github/workflows/playwright.yml
+    with:
+      node-version: "20"
 
-      - name: build
-        if: success()
-        run: npm run build
-
-      - name: trigger deployment
-        if: success()
+  deploy:
+    runs-on: ubuntu-20.04
+    needs: [simple_deployment_pipeline, playwright_tests]
+    steps:
+      - name: Trigger deployment
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
