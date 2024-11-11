@@ -35,6 +35,7 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     needs: [simple_deployment_pipeline, playwright_tests]
+    if: ${{ github.event_name == 'push' }}
     steps:
       - name: Trigger deployment
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
