@@ -2,7 +2,7 @@ name: Deployment pipeline
 run-name: Deployment pipeline
 
 env:
-  CONDITION: ${{ contains(join(github.event.commits.*.message, ", "), "#SKIP") }}
+  CONDITION: ${{ contains(join(github.event.commits.*.message, ', '), '#SKIP') }}
 
 on:
   push:
