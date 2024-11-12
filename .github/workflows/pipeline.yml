@@ -1,9 +1,6 @@
 name: Deployment pipeline
 run-name: Deployment pipeline
 
-env:
-  CONDITION: ${{ contains(join(github.event.commits.*.message, ', '), '#SKIP') }}
-
 on:
   push:
     branches:
@@ -40,7 +37,7 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     needs: [simple_deployment_pipeline, playwright_tests]
-    if: ${{ (github.event_name == 'push') && !(github.env.CONDITION == 'true') }}
+    if: ${{ (github.event_name == 'push') && !contains(join(github.event.commits.*.message, ', '), '#SKIP') }}
     steps:
       - uses: actions/checkout@v4
 
