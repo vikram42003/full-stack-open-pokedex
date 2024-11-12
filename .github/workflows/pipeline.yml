@@ -1,6 +1,9 @@
 name: Deployment pipeline
 run-name: Deployment pipeline
 
+env:
+  CONDITION: ${{ contains(join(github.event.commits.*.message, ", "), "#SKIP") }}
+
 on:
   push:
     branches:
@@ -18,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          
+
       - name: Install dependencies
         run: npm ci
 
@@ -37,7 +40,7 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     needs: [simple_deployment_pipeline, playwright_tests]
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ (github.event_name == 'push') && (github.env.CONDITION == 'true') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,5 +49,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
+      
       - name: Trigger deployment
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
