@@ -40,33 +40,59 @@ jobs:
           details: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
-  playwright_tests:
-    needs: simple_deployment_pipeline
-    uses: ./.github/workflows/playwright.yml
-    with:
-      node-version: "20"
-    
-
-  deploy:
+  discord-notify:
+    needs: [simple_deployment_pipeline]
     runs-on: ubuntu-20.04
-    needs: [simple_deployment_pipeline, playwright_tests]
-    if: ${{ (github.event_name == 'push') && !contains(join(github.event.commits.*.message, ', '), '#SKIP') }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.71.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_BUMP: patch
-      
-      - name: Trigger deployment
-        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
-      
-      - name: Discord Webhook Notify
-        uses: rjstone/discord-webhook-notify@v1.0.4
+      - name: Test Success!
+        uses: rjstone/discord-webhook-notify@v1
+        if: success()
         with:
           severity: info
-          description: A new version of Pokédex deployed
-          details: to https://full-stack-open-pokedex-lbd4.onrender.com by ${{ github.actor }}
+          details: Test Succeeded!
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Test Failure!
+        uses: rjstone/discord-webhook-notify@v1
+        if: failure()
+        with:
+          severity: error
+          details: Test Failed!
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Test Cancelled
+        uses: rjstone/discord-webhook-notify@v1
+        if: cancelled()
+        with:
+          severity: warn
+          details: Test Cancelled!
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
+  # playwright_tests:
+  #   needs: simple_deployment_pipeline
+  #   uses: ./.github/workflows/playwright.yml
+  #   with:
+  #     node-version: "20"
+    
+
+  # deploy:
+  #   runs-on: ubuntu-20.04
+  #   needs: [simple_deployment_pipeline, playwright_tests]
+  #   if: ${{ (github.event_name == 'push') && !contains(join(github.event.commits.*.message, ', '), '#SKIP') }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Bump version and push tag
+  #       uses: anothrNick/github-tag-action@1.71.0
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         DEFAULT_BUMP: patch
+      
+  #     - name: Trigger deployment
+  #       run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      
+  #     - name: Discord Webhook Notify
+  #       uses: rjstone/discord-webhook-notify@v1.0.4
+  #       with:
+  #         severity: info
+  #         description: A new version of Pokédex deployed
+  #         details: to https://full-stack-open-pokedex-lbd4.onrender.com by ${{ github.actor }}
+  #         webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
