@@ -31,8 +31,16 @@ jobs:
       - name: build
         run: npm run build
       
-      - name: Webhook url is
-        run: echo ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Webhook URL is available
+        if: ${{ secrets.DISCORD_WEBHOOK != '' }}
+        run: echo "Discord webhook is set."
+      
+      - name: Test Discord Webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -v -X POST -H "Content-Type: application/json" -d '{"content": "Debug test message"}' "$WEBHOOK_URL"
+      
 
       - name: Discord Webhook Notify
         if: failure()
