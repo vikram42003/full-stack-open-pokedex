@@ -10,6 +10,9 @@ jobs:
   health_check:
     runs-on: ubuntu-20.04
     steps:
+      - name: Start health check pipeline
+        run: echo "starting the job"
+
       - name: URL Health Check
         uses: Jtalk/url-health-check-action@v4
         with:
