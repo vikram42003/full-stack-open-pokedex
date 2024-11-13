@@ -1,0 +1,36 @@
+name: Peroidic health check
+run-name: Periodic health check
+
+on:
+  push:
+    branches:
+      -main
+
+jobs:
+  health_check:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: URL Health Check
+        uses: Jtalk/url-health-check-action@v4
+        with:
+          url: https://full-stack-open-pokedex-lbd4.onrender.com/
+          max-attempts: 3
+          retry-delay: 5s
+
+      - name: health check successful
+        uses: tsickert/discord-webhook@v6.0.0
+        if: success()
+        with:
+          embed-title: Health check successful
+          embed-description: The project vikram42003/full-stack-open-pokedex is up and working
+          embed-color: 32768
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+
+      - name: health check failed
+        uses: tsickert/discord-webhook@v6.0.0
+        if: failure()
+        with:
+          embed-title: Health check failed
+          embed-description: The project vikram2003/full-stack-open-pokedex is down!
+          embed-color: 16711680
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
