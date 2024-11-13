@@ -28,11 +28,24 @@ jobs:
       - name: Unit tests
         run: npm run test
 
+      - name: build
+        run: npm run build
+      
+      - name: Discord Webhook Notify
+        if: failure()
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          severity: error
+          description: Build failed
+          details: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
   playwright_tests:
     needs: simple_deployment_pipeline
     uses: ./.github/workflows/playwright.yml
     with:
       node-version: "20"
+    
 
   deploy:
     runs-on: ubuntu-20.04
@@ -49,3 +62,11 @@ jobs:
       
       - name: Trigger deployment
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      
+      - name: Discord Webhook Notify
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          severity: info
+          description: A new version of Pokédex deployed
+          details: to https://full-stack-open-pokedex-lbd4.onrender.com by ${{ github.actor }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
