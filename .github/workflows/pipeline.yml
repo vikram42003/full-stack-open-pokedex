@@ -37,6 +37,7 @@ jobs:
         with:
           embed-title: Build failed!
           embed-description: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
+          embed-color: 16711680
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
 
   playwright_tests:
@@ -67,4 +68,5 @@ jobs:
         with:
           embed-title: New version deployed
           embed-description: A new version of Pokédex deployed to https://full-stack-open-pokedex-lbd4.onrender.com
+          embed-color: 32768
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
