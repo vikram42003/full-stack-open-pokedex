@@ -33,7 +33,7 @@ jobs:
       
       - name: Discord Webhook Notify
         if: failure()
-        uses: rjstone/discord-webhook-notify@v1
+        uses: rjstone/discord-webhook-notify@v1.0.4
         with:
           severity: error
           description: Build failed
@@ -64,7 +64,7 @@ jobs:
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
       
       - name: Discord Webhook Notify
-        uses: rjstone/discord-webhook-notify@v1
+        uses: rjstone/discord-webhook-notify@v1.0.4
         with:
           severity: info
           description: A new version of Pokédex deployed
