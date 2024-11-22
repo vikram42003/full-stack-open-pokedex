@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+
       - name: Install dependencies
         run: npm ci
 
@@ -26,15 +28,45 @@ jobs:
       - name: Unit tests
         run: npm run test
 
+      - name: build
+        run: npm run build
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v6.0.0
+        if: failure()
+        with:
+          embed-title: Build failed!
+          embed-description: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
+          embed-color: 16711680
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+
   playwright_tests:
     needs: simple_deployment_pipeline
     uses: ./.github/workflows/playwright.yml
     with:
       node-version: "20"
+    
 
   deploy:
     runs-on: ubuntu-20.04
     needs: [simple_deployment_pipeline, playwright_tests]
+    if: ${{ (github.event_name == 'push') && !contains(join(github.event.commits.*.message, ', '), '#SKIP') }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.71.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+      
       - name: Trigger deployment
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v6.0.0
+        with:
+          embed-title: New version deployed
+          embed-description: A new version of Pokédex deployed to https://full-stack-open-pokedex-lbd4.onrender.com
+          embed-color: 32768
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
